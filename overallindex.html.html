@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mars Waste Recycling — Static Site with Icons</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Simple transition for the toast message */
+    #messageToast {
+        transition: opacity 0.3s ease-in-out;
+    }
+    /* Scroll-padding-top to avoid header obscuring section titles on nav clicks */
+    html {
+        scroll-padding-top: 100px;
+    }
+    /* Custom styles for range slider */
+    input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 8px;
+        background: #e2e8f0; /* slate-200 */
+        border-radius: 5px;
+        outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #4f46e5; /* indigo-600 */
+        cursor: pointer;
+        border-radius: 50%;
+    }
+    input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: #4f46e5; /* indigo-600 */
+        cursor: pointer;
+        border-radius: 50%;
+    }
+  </style>
+</head>
+<body class="bg-neutral-50 text-neutral-900 antialiased">
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-indigo-700 to-sky-600 text-white p-6 shadow-lg sticky top-0 z-20">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold">Mars Waste Recycling</h1>
+        <p class="text-sm opacity-90">Concept site — plastics, metals, composites recycling for a 3-year, 8-person mission</p>
+      </div>
+      <nav class="hidden md:flex space-x-4 text-sm">
+        <a href="#summary" class="hover:underline">Summary</a>
+        <a href="#calculator" class="hover:underline">Calculators</a>
+        <a href="#aluminum" class="hover:underline">Aluminum</a>
+        <a href="#plastics" class="hover:underline">Plastics</a>
+        <a href="#methods" class="hover:underline">Methods</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto p-6 space-y-8">
+    <!-- Icon Row -->
+    <section class="grid md:grid-cols-3 gap-6 text-center">
+      <!-- Plastics Card -->
+      <div id="plasticsIcon" role="button" tabindex="0" class="cursor-pointer p-6 bg-white rounded-xl shadow-md flex flex-col items-center hover:bg-slate-50 hover:shadow-lg transition-shadow duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 10l1.5 11h15L21 10M8 10V6a2 2 0 012-2h4a2 2 0 012 2v4m-8 5h8" />
+        </svg>
+        <h3 class="mt-3 font-semibold">Plastics & Components</h3>
+      </div>
+      <!-- Aluminium Card -->
+      <div id="aluminiumIcon" role="button" tabindex="0" class="cursor-pointer p-6 bg-white rounded-xl shadow-md flex flex-col items-center hover:bg-slate-50 hover:shadow-lg transition-shadow duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+           <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+        <h3 class="mt-3 font-semibold">Aluminium</h3>
+      </div>
+      <!-- Other Inorganic Card -->
+      <div id="otherIcon" role="button" tabindex="0" class="cursor-pointer p-6 bg-white rounded-xl shadow-md flex flex-col items-center hover:bg-slate-50 hover:shadow-lg transition-shadow duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h4v4H4z M10 4h4v4h-4z M16 4h4v4h-4z M4 10h4v4H4z M10 10h4v4h-4z M16 10h4v4h-4z M4 16h4v4H4z M10 16h4v4h-4z M16 16h4v4h-4z" />
+        </svg>
+        <h3 class="mt-3 font-semibold">Other Inorganic</h3>
+      </div>
+    </section>
+
+    <!-- Summary Section -->
+    <section id="summary" class="bg-white p-6 rounded-2xl shadow-lg">
+      <h2 class="text-xl font-semibold">Mission Summary</h2>
+      
+      <div class="mt-6 md:flex md:items-center md:gap-6">
+        <div class="w-full md:w-1/2 bg-slate-50 p-4 rounded-lg">
+          <canvas id="compositionChart" height="200"></canvas>
+        </div>
+        <div class="mt-4 md:mt-0 md:w-1/2 text-sm text-neutral-700 flex items-center justify-center">
+            <h3 class="text-lg font-semibold text-center">A Summary Of Other Inorganic, Aluminum & Plastic and Composites</h3>
+        </div>
+      </div>
+
+      <p class="mt-4 text-sm text-neutral-700">Three-year mission, 8 crew. Total inorganic waste (estimated): <strong>12,600 kg</strong>.</p>
+
+      <div class="mt-4 grid md:grid-cols-3 gap-4">
+        <div class="p-4 border rounded-lg bg-gray-50">
+          <div class="text-xs text-neutral-500">Estimated Total Aluminum</div>
+          <div class="text-2xl font-bold">3,150 — 4,410 kg</div>
+          <div class="text-sm text-neutral-600">(~25–35% of inorganic waste)</div>
+        </div>
+        <div class="p-4 border rounded-lg bg-gray-50">
+          <div class="text-xs text-neutral-500">Consumable (low-grade) Al</div>
+          <div class="text-2xl font-bold">≈600 kg</div>
+          <div class="text-sm text-neutral-600">Foil from packaging (needs special processing)</div>
+        </div>
+        <div class="p-4 border rounded-lg bg-gray-50">
+          <div class="text-xs text-neutral-500">Structural (high-grade) Al</div>
+          <div class="text-2xl font-bold">2,550 — 3,810 kg</div>
+          <div class="text-sm text-neutral-600">Equipment, frames, housings</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recycling Calculator Section -->
+    <section id="calculator" class="bg-white p-6 rounded-2xl shadow-lg space-y-8">
+        <h2 class="text-xl font-semibold">Recycling Potential Calculators</h2>
+        
+        <!-- Plastics Calculator -->
+        <div>
+            <h3 class="text-lg font-semibold text-neutral-800">Plastics Calculator</h3>
+            <p class="mt-1 text-sm text-neutral-700">Adjust the mass of each plastic type to calculate feedstock for each path.</p>
+            <div class="mt-4 grid md:grid-cols-2 gap-x-12 gap-y-6">
+                <div class="space-y-4" id="plastics-calculator-inputs">
+                    <!-- Plastics Sliders will be dynamically inserted here -->
+                </div>
+                <div class="bg-slate-50 p-6 rounded-lg">
+                    <h3 class="font-semibold">Potential Feedstock Totals</h3>
+                    <div class="mt-4 space-y-4">
+                        <div>
+                            <div class="text-sm text-neutral-600">Mechanical Recycling</div>
+                            <div id="mechanical-total" class="text-3xl font-bold text-indigo-600">0 kg</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-neutral-600">Chemical Recycling</div>
+                            <div id="chemical-total" class="text-3xl font-bold text-sky-600">0 kg</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-neutral-600">Composite Recycling</div>
+                            <div id="composite-total" class="text-3xl font-bold text-emerald-600">0 kg</div>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-200 text-xs text-neutral-600 space-y-2">
+                        <p><strong>Mechanical Recycling:</strong> Shredded plastic is melted and extruded into 3D printer filament to print tools, replacement parts, or even furniture.</p>
+                        <p><strong>Chemical Recycling:</strong> Pyrolysis (heating in an oxygen-free chamber) breaks plastics into oil-like liquids or gas, which can be refined into fuels, lubricants, or new plastics.</p>
+                        <p><strong>Composite Recycling:</strong> Shredded plastic can be blended with Martian regolith to create durable construction materials like bricks, tiles, or radiation-resistant blocks.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="border-slate-200">
+
+        <!-- Aluminum Calculator -->
+        <div>
+            <h3 class="text-lg font-semibold text-neutral-800">Aluminum Calculator</h3>
+            <p class="mt-1 text-sm text-neutral-700">Adjust total mass and processing paths for high and low-grade aluminum.</p>
+            <div class="mt-4 grid md:grid-cols-2 gap-x-12 gap-y-6">
+                <div class="space-y-4" id="aluminum-calculator-inputs">
+                    <!-- Aluminum Sliders will be dynamically inserted here -->
+                </div>
+                <div class="bg-slate-50 p-6 rounded-lg">
+                    <h3 class="font-semibold">Potential Output Totals</h3>
+                    <div class="mt-4 space-y-4 text-sm">
+                        <div class="p-3 border rounded-md bg-white">
+                           <p class="text-xs text-neutral-500">High-Grade Pre-treatment</p>
+                           <p><span class="font-semibold">Automated Sorting (LIBS):</span> <span id="al-sorting-total" class="font-bold text-gray-700">0 kg</span></p>
+                        </div>
+                        <div class="p-3 border rounded-md bg-white">
+                           <p class="text-xs text-neutral-500">High-Grade Output</p>
+                           <p><span class="font-semibold">Direct Melting and Casting:</span> <span id="al-casting-total" class="font-bold text-gray-700">0 kg</span></p>
+                           <p><span class="font-semibold">Metal Powder Atomization:</span> <span id="al-atomization-total" class="font-bold text-gray-700">0 kg</span></p>
+                        </div>
+                        <div class="p-3 border rounded-md bg-white">
+                           <p class="text-xs text-neutral-500">Low-Grade Processing</p>
+                            <p><span class="font-semibold">Thermal Separation (Pyrolysis):</span> <span id="al-pyrolysis-total" class="font-bold text-gray-700">0 kg</span></p>
+                           <p><span class="font-semibold">Powderizing and Cleaning:</span> <span id="al-powder-total" class="font-bold text-gray-700">0 kg</span></p>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-200 text-xs text-neutral-600 space-y-2">
+                        <h4 class="font-bold text-sm text-neutral-800">Why Al?</h4>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><strong>Lightness:</strong> reduces launch cost</li>
+                            <li><strong>Strength:</strong> structure integrity</li>
+                            <li><strong>Corrosion Resistance:</strong> durability</li>
+                            <li><strong>Thermal Control:</strong> heat management</li>
+                            <li><strong>Cost-Effective:</strong> economic choice</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <hr class="border-slate-200">
+
+        <!-- Other Waste Calculator -->
+        <div>
+            <h3 class="text-lg font-semibold text-neutral-800">Biological & Other Waste Calculator</h3>
+            <p class="mt-1 text-sm text-neutral-700">Adjust waste stream mass to calculate potential recycled outputs.</p>
+            <div class="mt-4 grid md:grid-cols-2 gap-x-12 gap-y-6">
+                <div class="space-y-4" id="other-calculator-inputs">
+                    <!-- Other Waste Sliders will be dynamically inserted here -->
+                </div>
+                <div class="bg-slate-50 p-6 rounded-lg">
+                    <h3 class="font-semibold">Potential Recycled Outputs</h3>
+                    <div class="mt-4 space-y-4">
+                        <div>
+                            <div class="text-sm text-neutral-600">Potable Water 💧</div>
+                            <div id="potable-water-total" class="text-2xl font-bold text-cyan-600">0 kg</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-neutral-600">Water & Shielding Tiles</div>
+                            <div id="shielding-tiles-total" class="text-2xl font-bold text-amber-700">0 kg</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-neutral-600">3D Filament, Tools, Bricks 🛠️</div>
+                            <div id="repurposed-inorganic-total" class="text-2xl font-bold text-slate-700">0 kg</div>
+                        </div>
+                        <hr class="border-slate-300">
+                        <div>
+                            <div class="text-sm font-semibold text-neutral-800">Total Recycled Outputs</div>
+                            <div id="total-recycled-mass" class="text-3xl font-bold text-green-700 mt-1">0 kg</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- Placeholder sections for navigation -->
+    <section id="aluminum" class="bg-white p-6 rounded-2xl shadow-lg">
+        <h2 class="text-xl font-semibold">Aluminum Recycling Details</h2>
+        <p class="mt-2 text-sm text-neutral-700">Aluminum waste, primarily from food containers and structural components, will be sorted by alloy type. High-grade aluminum can be re-smelted into ingots for fabricating tools, spare parts, or habitat structures using 3D printing or casting. Low-grade foil requires cleaning and compaction before it can be processed into lower-quality materials, such as radiation shielding aggregates.</p>
+    </section>
+
+    <section id="plastics" class="bg-white p-6 rounded-2xl shadow-lg">
+        <h2 class="text-xl font-semibold">Plastics & Composites Recycling Details</h2>
+        <p class="mt-2 text-sm text-neutral-700">A variety of plastics like HDPE, LDPE, and PET will be shredded, melted, and extruded into filament for 3D printers. This filament is crucial for creating custom tools, repair parts, and personal items for the crew. Carbon fiber reinforced polymers (CFRPs) present a challenge but can be pyrolyzed to recover carbon fibers for reinforcing new materials.</p>
+    </section>
+
+    <section id="methods" class="bg-white p-6 rounded-2xl shadow-lg">
+        <h2 class="text-xl font-semibold">Proposed Recycling Methods</h2>
+        <p class="mt-2 text-sm text-neutral-700">The primary methods will involve mechanical recycling (shredding, melting, extrusion) for thermoplastics and aluminum. Chemical recycling techniques, such as pyrolysis, will be investigated for complex composites and mixed plastics to break them down into valuable chemical feedstocks. All processes are designed to be low-power and highly automated to minimize crew workload.</p>
+    </section>
+  </main>
+
+  <!-- Modal for Other Inorganic Details -->
+  <div id="otherModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center p-4 z-30">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-2xl font-semibold text-green-700">Biological & Other Waste Recycling</h2>
+        <button id="closeOtherModal" class="text-gray-400 hover:text-gray-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <div class="mt-4 text-neutral-700 space-y-6">
+        <div>
+          <h3 class="font-semibold text-lg">Recycling Liquid Waste (Urine)</h3>
+          <p class="text-sm mt-2">Urine is over 95% water. The Water Recovery System (WRS) uses a three-step process: pre-treatment, distillation (boiling at low pressure to separate pure water vapor), and purification through advanced filters. This recovers about 95% of the water to a potable state.</p>
+          <ul class="text-sm mt-2 list-disc list-inside">
+            <li><strong>Output:</strong> Potable Water (12,483 kg), Urine Brine (657 kg).</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg">Recycling Solid Waste (Feces)</h3>
+          <p class="text-sm mt-2">Solid waste is processed using a Heat Melt Compactor. It is first dehydrated to recover water, then the dry solids are heated and compressed into dense, sterile tiles.</p>
+           <ul class="text-sm mt-2 list-disc list-inside">
+            <li><strong>Output:</strong> Recovered Water, Radiation Shielding Tiles.</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg">Mission Waste Summary Table</h3>
+          <div class="overflow-x-auto mt-3">
+              <table class="w-full text-sm text-left border-collapse">
+                  <thead class="bg-slate-100">
+                      <tr>
+                          <th class="p-2 border font-semibold">Waste Stream</th>
+                          <th class="p-2 border font-semibold">Total Generated (3 Years)</th>
+                          <th class="p-2 border font-semibold">Recycled As</th>
+                          <th class="p-2 border font-semibold">Amount Recovered</th>
+                          <th class="p-2 border font-semibold">Final Residual Waste</th>
+                      </tr>
+                  </thead>
+                  <tbody class="text-xs">
+                      <tr class="bg-white"><td class="p-2 border">Liquid Waste (Urine)</td><td class="p-2 border">13,140 kg</td><td class="p-2 border">Potable Water 💧</td><td class="p-2 border">12,483 kg</td><td class="p-2 border">657 kg (Brine)</td></tr>
+                      <tr class="bg-slate-50"><td class="p-2 border">Solid Waste (Feces)</td><td class="p-2 border">1,314 kg</td><td class="p-2 border">Water & Shielding Tiles</td><td class="p-2 border">1,314 kg</td><td class="p-2 border">0 kg</td></tr>
+                      <tr class="bg-white"><td class="p-2 border">Sweat & Respiration</td><td class="p-2 border">~19,000 kg</td><td class="p-2 border">Potable Water 💧</td><td class="p-2 border">~19,000 kg</td><td class="p-2 border">Negligible</td></tr>
+                      <tr class="bg-slate-50"><td class="p-2 border">Inorganic Trash</td><td class="p-2 border">12,600 kg</td><td class="p-2 border">3D Filament, Tools, Bricks 🛠️</td><td class="p-2 border">~12,600 kg</td><td class="p-2 border">Minimal Ash/Slag</td></tr>
+                      <tr class="bg-white font-bold"><td class="p-2 border">TOTALS</td><td class="p-2 border">~46,054 kg</td><td class="p-2 border">-</td><td class="p-2 border">~45,397 kg</td><td class="p-2 border">~657 kg</td></tr>
+                  </tbody>
+              </table>
+          </div>
+        </div>
+      </div>
+       <div class="mt-6 pt-4 border-t text-right">
+        <button id="closeOtherModalBtn" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Aluminium Details -->
+  <div id="aluminiumModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center p-4 z-30">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-2xl font-semibold text-gray-700">Aluminum Waste Recycling on Mars</h2>
+        <button id="closeAluminiumModal" class="text-gray-400 hover:text-gray-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <div class="mt-4 text-neutral-700 space-y-6">
+        <div>
+          <h3 class="font-semibold text-lg">Estimated Aluminum Mass from Packaging</h3>
+          <p class="text-sm mt-2">Based on NASA analogs, food packaging waste is a primary source of low-grade aluminum. The packaging laminate contains approximately 29.5% aluminum alloy by weight.</p>
+           <div class="overflow-x-auto mt-3">
+              <table class="w-full text-sm text-left border-collapse">
+                  <thead class="bg-slate-100">
+                      <tr>
+                          <th class="p-2 border font-semibold">Metric</th>
+                          <th class="p-2 border font-semibold">Calculation (Based on NASA Analogs)</th>
+                          <th class="p-2 border font-semibold">Result (Estimate)</th>
+                      </tr>
+                  </thead>
+                  <tbody class="text-xs">
+                      <tr class="bg-white"><td class="p-2 border">Daily Food Packaging Waste</td><td class="p-2 border">8 crew × 0.23 kg/person/day</td><td class="p-2 border font-semibold">≈1.84 kg/day</td></tr>
+                      <tr class="bg-slate-50"><td class="p-2 border">Total Packaging Waste (3 Yrs)</td><td class="p-2 border">1.84 kg/day × 1,095 days</td><td class="p-2 border font-semibold">≈2,015 kg</td></tr>
+                      <tr class="bg-white"><td class="p-2 border">Estimated Aluminum Waste (30% of Packaging)</td><td class="p-2 border">2,015 kg × 30%</td><td class="p-2 border font-semibold">≈600 kg</td></tr>
+                  </tbody>
+              </table>
+          </div>
+        </div>
+
+        <div>
+            <h3 class="font-semibold text-lg">Recycling Structural (High-Grade) Aluminum (2,550 - 3,810 kg)</h3>
+            <p class="text-sm mt-2">This larger fraction comes from used equipment, structural parts, and instrument housings. It is processed to create high-quality materials.</p>
+            <div class="overflow-x-auto mt-3">
+                <table class="w-full text-sm text-left border-collapse">
+                    <thead class="bg-slate-100">
+                        <tr>
+                            <th class="p-2 border font-semibold">Method</th>
+                            <th class="p-2 border font-semibold">Process Description</th>
+                            <th class="p-2 border font-semibold">Output Product</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-xs">
+                        <tr class="bg-white"><td class="p-2 border font-semibold">Direct Melting and Casting</td><td class="p-2 border">Shredded alloys are fed into an induction furnace under an inert gas atmosphere to prevent oxidation.</td><td class="p-2 border">Clean ingots or pre-cast simple shapes for later machining or re-melting.</td></tr>
+                        <tr class="bg-slate-50"><td class="p-2 border font-semibold">Metal Powder Atomization</td><td class="p-2 border">Molten aluminum is sprayed through a high-pressure inert gas nozzle to rapidly cool the metal into fine, spherical powder.</td><td class="p-2 border">Powder feedstock for high-precision Metal Additive Manufacturing (3D Printing).</td></tr>
+                        <tr class="bg-white"><td class="p-2 border font-semibold">Automated Sorting (LIBS)</td><td class="p-2 border">Laser-Induced Breakdown Spectroscopy rapidly identifies the specific alloy composition before melting to ensure uniform, high-quality batches.</td><td class="p-2 border">Sorted aluminum alloys, preserving the integrity of the original material.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="font-semibold text-lg">Recycling Consumables (Low-Grade) Aluminum (≈600 kg)</h3>
+            <p class="text-sm mt-2">This fraction consists of foil from multilayer food packaging and requires specialized processing to separate it from contaminants.</p>
+            <div class="overflow-x-auto mt-3">
+                <table class="w-full text-sm text-left border-collapse">
+                    <thead class="bg-slate-100">
+                        <tr>
+                            <th class="p-2 border font-semibold">Method</th>
+                            <th class="p-2 border font-semibold">Process Description</th>
+                            <th class="p-2 border font-semibold">Output Product</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-xs">
+                        <tr class="bg-white"><td class="p-2 border font-semibold">Thermal Separation (Pyrolysis)</td><td class="p-2 border">Packaging is heated in a controlled atmosphere. The plastic/organic layers decompose into gases, leaving the aluminum foil behind.</td><td class="p-2 border">Aluminum sheets/clumps and recoverable fuel gas.</td></tr>
+                        <tr class="bg-slate-50"><td class="p-2 border font-semibold">Powderizing and Cleaning</td><td class="p-2 border">Recovered aluminum is cleaned to remove soot, then subjected to ball milling or grinding to produce a fine powder.</td><td class="p-2 border">Low-grade aluminum powder for non-critical 3D printing or mixing with regolith.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+      </div>
+       <div class="mt-6 pt-4 border-t text-right">
+        <button id="closeAluminiumModalBtn" class="bg-gray-600 text-white px-5 py-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">Close</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal for Plastics Details -->
+  <div id="plasticsModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center p-4 z-30">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-2xl font-semibold text-blue-600">Plastic Waste Recycling on Mars</h2>
+        <button id="closePlasticsModal" class="text-gray-400 hover:text-gray-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+
+      <div class="mt-4 text-neutral-700 space-y-4">
+        <div>
+          <h3 class="font-semibold text-lg">Step-by-Step Process</h3>
+          <div class="mt-2 space-y-3 text-sm">
+            <p><strong>1. Collection & Sorting:</strong> Plastics arrive in mixed packaging (films, bottles, crates, foams). Robots or colonists sort by type (PET, HDPE, LDPE, etc.) using miniaturized optical scanners.</p>
+            <p><strong>2. Cleaning & Shredding:</strong> To combat Martian dust and food contamination, waste is washed with recycled water. Shredders then cut the clean plastics into flakes or pellets for processing.</p>
+            <p><strong>3. Recycling Methods:</strong></p>
+            <ul class="list-disc list-inside pl-4">
+              <li><strong>Mechanical Recycling:</strong> Shredded plastic is melted and extruded into 3D printer filament to print tools, replacement parts, or even furniture.</li>
+              <li><strong>Chemical Recycling:</strong> Pyrolysis (heating in an oxygen-free chamber) breaks plastics into oil-like liquids or gas, which can be refined into fuels, lubricants, or new plastics.</li>
+              <li><strong>Composite Recycling:</strong> Shredded plastic can be blended with Martian regolith to create durable construction materials like bricks, tiles, or radiation-resistant blocks.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div>
+            <h3 class="font-semibold text-lg mt-6">Plastic Types & Recycling Paths</h3>
+            <p class="text-xs text-neutral-500">Recycling Suitability: ✅ Excellent | ✔️ Good | ⚠️ Limited | ❌ Poor</p>
+            <div class="overflow-x-auto mt-2">
+                <table class="w-full text-sm text-left border-collapse">
+                    <thead class="bg-slate-100">
+                        <tr>
+                            <th class="p-2 border font-semibold">Plastic Type</th>
+                            <th class="p-2 border font-semibold">Est. Usage (kg)</th>
+                            <th class="p-2 border font-semibold">Best Path</th>
+                            <th class="p-2 border font-semibold">Notes (Mars Context)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-xs">
+                        <tr class="bg-white hover:bg-slate-50"><td class="p-2 border font-semibold">HDPE</td><td class="p-2 border">500–1000</td><td class="p-2 border">Mechanical ✅</td><td class="p-2 border">Strong, remolds easily → 3D printing filament, panels. High priority.</td></tr>
+                        <tr class="bg-slate-50 hover:bg-slate-100"><td class="p-2 border font-semibold">LDPE</td><td class="p-2 border">200–400</td><td class="p-2 border">Chemical ✅</td><td class="p-2 border">Hard to process mechanically, better for fuel/syngas or as binder in composites.</td></tr>
+                        <tr class="bg-white hover:bg-slate-50"><td class="p-2 border font-semibold">PP</td><td class="p-2 border">300–600</td><td class="p-2 border">Mechanical + Chemical ✅</td><td class="p-2 border">Useful for containers, parts; also pyrolysis-friendly.</td></tr>
+                        <tr class="bg-slate-50 hover:bg-slate-100"><td class="p-2 border font-semibold">PET</td><td class="p-2 border">200–500</td><td class="p-2 border">Chemical ✅</td><td class="p-2 border">Depolymerizes well → raw monomers. Mechanical recycling drops quality.</td></tr>
+                        <tr class="bg-white hover:bg-slate-50"><td class="p-2 border font-semibold">PVC</td><td class="p-2 border">300–800</td><td class="p-2 border">⚠️ Problematic</td><td class="p-2 border">Toxic when heated; requires special handling or encapsulation in composites.</td></tr>
+                        <tr class="bg-slate-50 hover:bg-slate-100"><td class="p-2 border font-semibold">PC</td><td class="p-2 border">400–700</td><td class="p-2 border">Composite + Chemical ✔️</td><td class="p-2 border">Strong, radiation resistant → great in regolith composites.</td></tr>
+                        <tr class="bg-white hover:bg-slate-50"><td class="p-2 border font-semibold">PMMA</td><td class="p-2 border">300–500</td><td class="p-2 border">Chemical ✅</td><td class="p-2 border">Depolymerizes cleanly → MMA monomer for reuse.</td></tr>
+                        <tr class="bg-slate-50 hover:bg-slate-100"><td class="p-2 border font-semibold">PS</td><td class="p-2 border">100–300</td><td class="p-2 border">Chemical ✅</td><td class="p-2 border">Converts to styrene monomer; foam usable for insulation.</td></tr>
+                        <tr class="bg-white hover:bg-slate-50"><td class="p-2 border font-semibold">ABS</td><td class="p-2 border">200–400</td><td class="p-2 border">Mechanical ✅</td><td class="p-2 border">Already used in 3D printing → easy recycling route.</td></tr>
+                        <tr class="bg-slate-50 hover:bg-slate-100"><td class="p-2 border font-semibold">Nylon</td><td class="p-2 border">200–400</td><td class="p-2 border">Mechanical + Chemical ✔️</td><td class="p-2 border">Can be reforged into fibers or chemically recovered. Sensitive to heat cycles.</td></tr>
+                        <tr class="bg-white hover:bg-slate-50"><td class="p-2 border font-semibold">PTFE</td><td class="p-2 border">50–150</td><td class="p-2 border">❌ Difficult</td><td class="p-2 border">Non-stick, chemically inert → best reused as-is.</td></tr>
+                        <tr class="bg-slate-50 hover:bg-slate-100"><td class="p-2 border font-semibold">Kapton</td><td class="p-2 border">100–200</td><td class="p-2 border">Composite ✔️</td><td class="p-2 border">High-temp stability → embed in regolith blocks or insulation.</td></tr>
+                        <tr class="bg-white hover:bg-slate-50"><td class="p-2 border font-semibold">PEEK</td><td class="p-2 border">50–100</td><td class="p-2 border">Composite + Mechanical ✅</td><td class="p-2 border">High-performance → best saved for critical repairs or radiation shielding composites.</td></tr>
+                        <tr class="bg-slate-50 hover:bg-slate-100"><td class="p-2 border font-semibold">CFRP</td><td class="p-2 border">1000–2000</td><td class="p-2 border">Composite ✅</td><td class="p-2 border">Huge volume, not remeltable → grind into regolith composite for strong construction.</td></tr>
+                        <tr class="bg-white hover:bg-slate-50"><td class="p-2 border font-semibold">Silicones</td><td class="p-2 border">100–200</td><td class="p-2 border">Composite + Chemical ✔️</td><td class="p-2 border">Flexible binder, insulation, or depolymerized into siloxanes.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+      </div>
+      <div class="mt-6 pt-4 border-t text-right">
+        <button id="closePlasticsModalBtn" class="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Chart.js Configuration ---
+    let compositionChart; // Declare chart variable
+
+    function updateCompositionChart() {
+        if (!compositionChart) {
+            return; // Exit if chart is not ready
+        }
+
+        const highGradeAlSlider = document.getElementById('high-grade-al-slider');
+        const lowGradeAlSlider = document.getElementById('low-grade-al-slider');
+        const otherInorganicSlider = document.getElementById('inorganic-trash-slider');
+
+        const highGradeAl = highGradeAlSlider ? parseInt(highGradeAlSlider.value, 10) : 0;
+        const lowGradeAl = lowGradeAlSlider ? parseInt(lowGradeAlSlider.value, 10) : 0;
+        const totalAluminum = highGradeAl + lowGradeAl;
+
+        const totalPlastics = plasticsData.reduce((sum, plastic) => {
+            const slider = document.getElementById(`${plastic.id}-slider`);
+            return sum + (slider ? parseInt(slider.value, 10) : 0);
+        }, 0);
+        
+        const otherInorganic = otherInorganicSlider ? parseInt(otherInorganicSlider.value, 10) : 0;
+
+        // Update chart data and redraw
+        compositionChart.data.datasets[0].data[0] = totalAluminum;
+        compositionChart.data.datasets[0].data[1] = totalPlastics;
+        compositionChart.data.datasets[0].data[2] = otherInorganic;
+        compositionChart.update();
+    }
+    
+    // Chart: simple composition with updated colors
+    const ctx = document.getElementById('compositionChart').getContext('2d');
+    const data = {
+      labels: ['Aluminum', 'Plastics & Composites', 'Other Inorganic'],
+      datasets: [{
+        data: [0, 0, 0], // Start with 0, will be populated by calculators
+        // Added colors to match the icon themes
+        backgroundColor: ['#6B7280', '#3B82F6', '#16A34A'],
+        hoverOffset: 6,
+        borderColor: '#f8fafc', // Add a border to segments
+        borderWidth: 2
+      }]
+    };
+    compositionChart = new Chart(ctx, { // Assign to the variable
+      type: 'pie',
+      data: data,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+
+
+    // --- Interactive Elements Logic ---
+    const plasticsIcon = document.getElementById('plasticsIcon');
+    const aluminiumIcon = document.getElementById('aluminiumIcon');
+    const otherIcon = document.getElementById('otherIcon');
+    
+    const plasticsModal = document.getElementById('plasticsModal');
+    const closePlasticsModalBtn = document.getElementById('closePlasticsModalBtn');
+    const closePlasticsModalX = document.getElementById('closePlasticsModal');
+
+    const aluminiumModal = document.getElementById('aluminiumModal');
+    const closeAluminiumModalBtn = document.getElementById('closeAluminiumModalBtn');
+    const closeAluminiumModalX = document.getElementById('closeAluminiumModal');
+
+    const otherModal = document.getElementById('otherModal');
+    const closeOtherModalBtn = document.getElementById('closeOtherModalBtn');
+    const closeOtherModalX = document.getElementById('closeOtherModal');
+    
+    // --- Modal Functions ---
+    function openPlasticsModal() {
+      plasticsModal.classList.remove('hidden');
+      plasticsModal.classList.add('flex');
+    }
+
+    function closePlasticsModal() {
+      plasticsModal.classList.add('hidden');
+      plasticsModal.classList.remove('flex');
+    }
+
+    function openAluminiumModal() {
+      aluminiumModal.classList.remove('hidden');
+      aluminiumModal.classList.add('flex');
+    }
+
+    function closeAluminiumModal() {
+      aluminiumModal.classList.add('hidden');
+      aluminiumModal.classList.remove('flex');
+    }
+
+    function openOtherModal() {
+      otherModal.classList.remove('hidden');
+      otherModal.classList.add('flex');
+    }
+
+    function closeOtherModal() {
+      otherModal.classList.add('hidden');
+      otherModal.classList.remove('flex');
+    }
+    
+    // --- Event Listeners ---
+    plasticsIcon.addEventListener('click', openPlasticsModal);
+    aluminiumIcon.addEventListener('click', openAluminiumModal);
+    otherIcon.addEventListener('click', openOtherModal);
+
+    closePlasticsModalBtn.addEventListener('click', closePlasticsModal);
+    closePlasticsModalX.addEventListener('click', closePlasticsModal);
+
+    closeAluminiumModalBtn.addEventListener('click', closeAluminiumModal);
+    closeAluminiumModalX.addEventListener('click', closeAluminiumModal);
+
+    closeOtherModalBtn.addEventListener('click', closeOtherModal);
+    closeOtherModalX.addEventListener('click', closeOtherModal);
+    
+    // Close modal if clicking on the background overlay
+    plasticsModal.addEventListener('click', (event) => {
+        if (event.target === plasticsModal) {
+            closePlasticsModal();
+        }
+    });
+
+    aluminiumModal.addEventListener('click', (event) => {
+        if (event.target === aluminiumModal) {
+            closeAluminiumModal();
+        }
+    });
+
+    otherModal.addEventListener('click', (event) => {
+        if (event.target === otherModal) {
+            closeOtherModal();
+        }
+    });
+
+
+    // --- Accessibility for Keyboard Users ---
+    // Allows keyboard users to activate the cards using Enter or Spacebar
+    function handleKeyPress(event, action) {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault(); // Prevent scrolling on spacebar press
+            action();
+        }
+    }
+
+    plasticsIcon.addEventListener('keydown', (e) => handleKeyPress(e, openPlasticsModal));
+    aluminiumIcon.addEventListener('keydown', (e) => handleKeyPress(e, openAluminiumModal));
+    otherIcon.addEventListener('keydown', (e) => handleKeyPress(e, openOtherModal));
+
+    // --- Generic Slider Creation Function ---
+    function createSlider(container, config) {
+        const sliderContainer = document.createElement('div');
+        
+        const labelContainer = document.createElement('div');
+        labelContainer.className = 'flex justify-between items-center mb-1';
+        
+        const label = document.createElement('label');
+        label.htmlFor = config.id;
+        label.textContent = config.label;
+        label.className = 'text-sm font-medium text-neutral-800';
+        
+        const valueDisplay = document.createElement('span');
+        valueDisplay.id = `${config.id}-value`;
+        valueDisplay.className = 'text-sm font-semibold text-indigo-600';
+        valueDisplay.textContent = `${config.defaultValue} ${config.unit}`;
+        
+        labelContainer.appendChild(label);
+        labelContainer.appendChild(valueDisplay);
+
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.id = config.id;
+        slider.min = config.min;
+        slider.max = config.max;
+        slider.value = config.defaultValue;
+
+        slider.addEventListener('input', (event) => {
+            valueDisplay.textContent = `${event.target.value} ${config.unit}`;
+            config.callback();
+        });
+
+        sliderContainer.appendChild(labelContainer);
+        sliderContainer.appendChild(slider);
+        container.appendChild(sliderContainer);
+    }
+
+
+    // --- Plastics Calculator Logic ---
+    const plasticsData = [
+        { id: 'hdpe', name: 'HDPE', min: 500, max: 1000, paths: ['mechanical'] },
+        { id: 'ldpe', name: 'LDPE', min: 200, max: 400, paths: ['chemical'] },
+        { id: 'pp', name: 'PP', min: 300, max: 600, paths: ['mechanical', 'chemical'] },
+        { id: 'pet', name: 'PET', min: 200, max: 500, paths: ['chemical'] },
+        { id: 'pvc', name: 'PVC', min: 300, max: 800, paths: [] },
+        { id: 'pc', name: 'PC', min: 400, max: 700, paths: ['composite', 'chemical'] },
+        { id: 'pmma', name: 'PMMA', min: 300, max: 500, paths: ['chemical'] },
+        { id: 'ps', name: 'PS', min: 100, max: 300, paths: ['chemical'] },
+        { id: 'abs', name: 'ABS', min: 200, max: 400, paths: ['mechanical'] },
+        { id: 'nylon', name: 'Nylon', min: 200, max: 400, paths: ['mechanical', 'chemical'] },
+        { id: 'ptfe', name: 'PTFE', min: 50, max: 150, paths: [] },
+        { id: 'kapton', name: 'Kapton', min: 100, max: 200, paths: ['composite'] },
+        { id: 'peek', name: 'PEEK', min: 50, max: 100, paths: ['composite', 'mechanical'] },
+        { id: 'cfrp', name: 'CFRP', min: 1000, max: 2000, paths: ['composite'] },
+        { id: 'silicones', name: 'Silicones', min: 100, max: 200, paths: ['composite', 'chemical'] },
+    ];
+    const plasticsInputsContainer = document.getElementById('plastics-calculator-inputs');
+    const mechanicalTotalEl = document.getElementById('mechanical-total');
+    const chemicalTotalEl = document.getElementById('chemical-total');
+    const compositeTotalEl = document.getElementById('composite-total');
+
+    function calculatePlasticsTotals() {
+        let mechanicalTotal = 0;
+        let chemicalTotal = 0;
+        let compositeTotal = 0;
+        
+        plasticsData.forEach(plastic => {
+            const slider = document.getElementById(`${plastic.id}-slider`);
+            const value = parseInt(slider.value, 10);
+            const numPaths = plastic.paths.length;
+
+            // If a plastic has valid recycling paths, distribute its mass among them.
+            if (numPaths > 0) {
+                const valuePerPath = value / numPaths;
+                if (plastic.paths.includes('mechanical')) mechanicalTotal += valuePerPath;
+                if (plastic.paths.includes('chemical')) chemicalTotal += valuePerPath;
+                if (plastic.paths.includes('composite')) compositeTotal += valuePerPath;
+            }
+            // Plastics with no paths (like PVC, PTFE) contribute to no total.
+        });
+
+        // Use Math.round to avoid decimal places in the final output.
+        mechanicalTotalEl.textContent = `${Math.round(mechanicalTotal).toLocaleString()} kg`;
+        chemicalTotalEl.textContent = `${Math.round(chemicalTotal).toLocaleString()} kg`;
+        compositeTotalEl.textContent = `${Math.round(compositeTotal).toLocaleString()} kg`;
+        updateCompositionChart();
+    }
+
+
+    function createPlasticsSliders() {
+        plasticsData.forEach(plastic => {
+            createSlider(plasticsInputsContainer, {
+                id: `${plastic.id}-slider`,
+                label: plastic.name,
+                min: plastic.min,
+                max: plastic.max,
+                defaultValue: Math.round((plastic.min + plastic.max) / 2),
+                unit: 'kg',
+                callback: calculatePlasticsTotals
+            });
+        });
+    }
+
+    // --- Aluminum Calculator Logic ---
+    const aluminumInputsContainer = document.getElementById('aluminum-calculator-inputs');
+    // Result Elements
+    const alSortingTotalEl = document.getElementById('al-sorting-total');
+    const alCastingTotalEl = document.getElementById('al-casting-total');
+    const alAtomizationTotalEl = document.getElementById('al-atomization-total');
+    const alPyrolysisTotalEl = document.getElementById('al-pyrolysis-total');
+    const alPowderTotalEl = document.getElementById('al-powder-total');
+
+    function calculateAluminumTotals() {
+        const highGradeMass = parseInt(document.getElementById('high-grade-al-slider').value, 10);
+        const lowGradeMass = parseInt(document.getElementById('low-grade-al-slider').value, 10);
+        const splitPercent = parseInt(document.getElementById('high-grade-al-split-slider').value, 10);
+
+        const castingMass = Math.round(highGradeMass * (splitPercent / 100));
+        const atomizationMass = highGradeMass - castingMass;
+
+        alSortingTotalEl.textContent = `${highGradeMass.toLocaleString()} kg`;
+        alCastingTotalEl.textContent = `${castingMass.toLocaleString()} kg`;
+        alAtomizationTotalEl.textContent = `${atomizationMass.toLocaleString()} kg`;
+        
+        // Low-grade processes are sequential on the same mass
+        alPyrolysisTotalEl.textContent = `${lowGradeMass.toLocaleString()} kg`;
+        alPowderTotalEl.textContent = `${lowGradeMass.toLocaleString()} kg`;
+        updateCompositionChart();
+    }
+
+    function createAluminumSliders() {
+        createSlider(aluminumInputsContainer, {
+            id: 'high-grade-al-slider',
+            label: 'Structural (High-Grade) Mass',
+            min: 2550, max: 3810, defaultValue: 3180, unit: 'kg',
+            callback: calculateAluminumTotals
+        });
+        createSlider(aluminumInputsContainer, {
+            id: 'low-grade-al-slider',
+            label: 'Consumables (Low-Grade) Mass',
+            min: 500, max: 700, defaultValue: 600, unit: 'kg',
+            callback: calculateAluminumTotals
+        });
+        createSlider(aluminumInputsContainer, {
+            id: 'high-grade-al-split-slider',
+            label: 'High-Grade to Casting',
+            min: 0, max: 100, defaultValue: 75, unit: '%',
+            callback: calculateAluminumTotals
+        });
+    }
+
+    // --- Other Waste Calculator Logic ---
+    const otherInputsContainer = document.getElementById('other-calculator-inputs');
+    const potableWaterTotalEl = document.getElementById('potable-water-total');
+    const shieldingTilesTotalEl = document.getElementById('shielding-tiles-total');
+    const repurposedInorganicTotalEl = document.getElementById('repurposed-inorganic-total');
+    const totalRecycledMassEl = document.getElementById('total-recycled-mass');
+
+    function calculateOtherTotals() {
+        const urineMass = parseInt(document.getElementById('liquid-waste-slider').value, 10);
+        const fecesMass = parseInt(document.getElementById('solid-waste-slider').value, 10);
+        const respirationMass = parseInt(document.getElementById('respiration-waste-slider').value, 10);
+        const inorganicMass = parseInt(document.getElementById('inorganic-trash-slider').value, 10);
+
+        const waterFromUrine = Math.round(urineMass * 0.95);
+        const totalPotableWater = waterFromUrine + respirationMass;
+        const totalRecycled = totalPotableWater + fecesMass + inorganicMass;
+
+        potableWaterTotalEl.textContent = `${totalPotableWater.toLocaleString()} kg`;
+        shieldingTilesTotalEl.textContent = `${fecesMass.toLocaleString()} kg`;
+        repurposedInorganicTotalEl.textContent = `${inorganicMass.toLocaleString()} kg`;
+        totalRecycledMassEl.textContent = `${totalRecycled.toLocaleString()} kg`;
+        updateCompositionChart();
+    }
+
+    function createOtherSliders() {
+        createSlider(otherInputsContainer, {
+            id: 'liquid-waste-slider',
+            label: 'Liquid Waste (Urine)',
+            min: 12000, max: 14000, defaultValue: 13140, unit: 'kg',
+            callback: calculateOtherTotals
+        });
+        createSlider(otherInputsContainer, {
+            id: 'solid-waste-slider',
+            label: 'Solid Waste (Feces)',
+            min: 1200, max: 1500, defaultValue: 1314, unit: 'kg',
+            callback: calculateOtherTotals
+        });
+        createSlider(otherInputsContainer, {
+            id: 'respiration-waste-slider',
+            label: 'Sweat & Respiration',
+            min: 18000, max: 20000, defaultValue: 19000, unit: 'kg',
+            callback: calculateOtherTotals
+        });
+        createSlider(otherInputsContainer, {
+            id: 'inorganic-trash-slider',
+            label: 'Inorganic Trash',
+            min: 11000, max: 14000, defaultValue: 12600, unit: 'kg',
+            callback: calculateOtherTotals
+        });
+    }
+
+    // --- Initialize All Calculators ---
+    function initializeCalculators() {
+        createPlasticsSliders();
+        createAluminumSliders();
+        createOtherSliders();
+        
+        calculatePlasticsTotals();
+        calculateAluminumTotals();
+        calculateOtherTotals();
+    }
+    
+    initializeCalculators();
+
+  </script>
+</body>
+</html>
+
